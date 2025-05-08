@@ -47,6 +47,7 @@ Kích hoạt môi trường ảo:
 
 Bước 4: Cài đặt các thư viện yêu cầu 
 Chạy lệnh sau để cài đặt các thư viện cần thiết:
+
     pip install -r requirements.txt
 
 Cách chạy dự án
