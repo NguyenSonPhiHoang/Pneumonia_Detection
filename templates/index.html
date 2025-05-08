@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chẩn đoán Viêm phổi từ ảnh X-quang</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+        }
+        .upload-container:hover {
+            border-color: #007bff;
+        }
+        .upload-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+        .upload-btn:hover {
+            background-color: #0056b3;
+        }
+        #file-name {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+            text-align: center;
+            display: none;
+        }
+        .normal {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .pneumonia {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .result-heading {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .confidence {
+            font-size: 18px;
+            color: #6c757d;
+        }
+        .result-image {
+            max-width: 100%;
+            max-height: 400px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #loading {
+            display: none;
+            margin: 20px 0;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #007bff;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chẩn đoán Viêm phổi từ ảnh X-quang</h1>
+        
+        <div class="upload-container">
+            <p>Tải lên ảnh X-quang ngực để nhận kết quả chẩn đoán</p>
+            <input type="file" id="file-upload" accept=".png, .jpg, .jpeg" style="display: none;">
+            <button class="upload-btn" onclick="document.getElementById('file-upload').click()">Chọn ảnh</button>
+            <div id="file-name"></div>
+        </div>
+        
+        <div id="loading">
+            <div class="spinner"></div>
+            <p style="text-align: center;">Đang phân tích ảnh...</p>
+        </div>
+        
+        <div id="result-container" class="result-container">
+            <h2 class="result-heading">Kết quả chẩn đoán:</h2>
+            <p id="result" style="font-size: 24px;"></p>
+            <p id="confidence" class="confidence"></p>
+            <img id="result-image" class="result-image" src="" alt="X-quang">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : '';
+            document.getElementById('file-name').textContent = fileName;
+            
+            if (fileName) {
+                uploadFile(e.target.files[0]);
+            }
+        });
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result-container').style.display = 'none';
+            
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                // Display result
+                const resultContainer = document.getElementById('result-container');
+                const resultElement = document.getElementById('result');
+                const confidenceElement = document.getElementById('confidence');
+                const imageElement = document.getElementById('result-image');
+                
+                if (data.result === 'PNEUMONIA') {
+                    resultElement.innerHTML = '<span class="pneumonia">VIÊM PHỔI</span>';
+                } else {
+                    resultElement.innerHTML = '<span class="normal">BÌNH THƯỜNG</span>';
+                }
+                
+                confidenceElement.textContent = `Độ tin cậy: ${data.confidence}`;
+                imageElement.src = data.image_path;
+                resultContainer.style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                alert('Đã xảy ra lỗi: ' + error);
+            });
+        }
+    </script>
+</body>
+</html>

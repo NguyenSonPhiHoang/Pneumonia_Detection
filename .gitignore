@@ -1,0 +1,21 @@
+# File tạm của Python
+__pycache__/
+*.pyc
+
+# Dữ liệu lớn
+ChestXRay/
+data/
+
+# File đầu ra của mô hình và báo cáo
+models/
+outputs/
+*.h5
+classification_report.txt
+confusion_matrix.png
+optimal_threshold.txt
+roc_curve.png
+
+# Môi trường ảo
+venv/
+env/
+ven/
